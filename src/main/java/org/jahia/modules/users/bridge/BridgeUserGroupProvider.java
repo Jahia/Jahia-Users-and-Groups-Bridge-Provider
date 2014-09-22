@@ -88,47 +88,59 @@ public class BridgeUserGroupProvider implements UserGroupProvider {
     private JahiaUserManagerProvider userManagerProvider;
     private JahiaGroupManagerProvider groupManagerProvider;
 
+    public BridgeUserGroupProvider(String providerKey) {
+        this.providerKey = providerKey;
+    }
+
     @Override
     public JahiaUser getUser(String name) throws UserNotFoundException {
-        return userManagerProvider.lookupUser(name);
+        return isUserManagerAvailable() ? userManagerProvider.lookupUser(name) : null;
     }
 
     @Override
     public boolean groupExists(String name) {
-        return groupManagerProvider.lookupGroup(name) != null;
+        return isGroupManagerAvailable() && groupManagerProvider.groupExists(0, name);
     }
 
     @Override
     public List<Member> getGroupMembers(String groupName) {
-        JahiaGroup jahiaGroup = groupManagerProvider.lookupGroup(groupName);
-        // TODO see if use a guava transform is possible
-        List<Member> members = new ArrayList<Member>();
-        if(jahiaGroup != null){
-            Collection<Principal> principals = jahiaGroup.getMembers();
-            for (Principal principal : principals){
-                if(principal instanceof java.security.acl.Group) {
-                    members.add(new Member(principal.getName(), Member.MemberType.GROUP));
-                } else {
-                    members.add(new Member(principal.getName(), Member.MemberType.USER));
+        if(isGroupManagerAvailable()){
+            JahiaGroup jahiaGroup = groupManagerProvider.lookupGroup(groupName);
+            List<Member> members = new ArrayList<Member>();
+            if(jahiaGroup != null){
+                Collection<Principal> principals = jahiaGroup.getMembers();
+                for (Principal principal : principals){
+                    if(principal instanceof java.security.acl.Group) {
+                        members.add(new Member(principal.getName(), Member.MemberType.GROUP));
+                    } else {
+                        members.add(new Member(principal.getName(), Member.MemberType.USER));
+                    }
                 }
+                return members;
             }
-            return members;
         }
         return Collections.emptyList();
     }
 
     @Override
     public List<String> getMembership(String userName) {
-        return null;
+        if(isUserManagerAvailable()){
+            JahiaUser user = userManagerProvider.lookupUser(userName);
+            if(user != null && isGroupManagerAvailable()){
+                return groupManagerProvider.getUserMembership(user);
+            }
+        }
+        return Collections.emptyList();
     }
 
     @Override
     public List<String> searchUsers(Properties searchCriterias) {
         List<String> users = new ArrayList<String>();
-        // TODO see if use a guava transform is possible
-        Set<JahiaUser> jahiaUsers = userManagerProvider.searchUsers(searchCriterias);
-        for (JahiaUser jahiaUser : jahiaUsers) {
-            users.add(jahiaUser.getName());
+        if(isUserManagerAvailable()){
+            Set<JahiaUser> jahiaUsers = userManagerProvider.searchUsers(searchCriterias);
+            for (JahiaUser jahiaUser : jahiaUsers) {
+                users.add(jahiaUser.getName());
+            }
         }
         return users;
     }
@@ -136,18 +148,32 @@ public class BridgeUserGroupProvider implements UserGroupProvider {
     @Override
     public List<String> searchGroups(Properties searchCriterias) {
         List<String> groups = new ArrayList<String>();
-        // TODO see if use a guava transform is possible
-        Set<JahiaGroup> jahiaGroups = groupManagerProvider.searchGroups(0, searchCriterias);
-        for (JahiaGroup jahiaGroup : jahiaGroups) {
-            groups.add(jahiaGroup.getName());
+        if(isGroupManagerAvailable()){
+            Set<JahiaGroup> jahiaGroups = groupManagerProvider.searchGroups(0, searchCriterias);
+            for (JahiaGroup jahiaGroup : jahiaGroups) {
+                groups.add(jahiaGroup.getGroupname());
+            }
         }
         return groups;
     }
 
     @Override
     public boolean verifyPassword(String userName, String userPassword) {
-        JahiaUser user = userManagerProvider.lookupUser(userName);
-        return user.verifyPassword(userPassword);
+        if(isUserManagerAvailable()){
+            JahiaUser user = userManagerProvider.lookupUser(userName);
+            if(user != null) {
+                return userManagerProvider.login(user.getUserKey(), userPassword);
+            }
+        }
+        return false;
+    }
+
+    private boolean isGroupManagerAvailable(){
+        return groupManagerProvider != null;
+    }
+
+    private boolean isUserManagerAvailable(){
+        return userManagerProvider != null;
     }
 
     public String getProviderKey() {
@@ -172,13 +198,5 @@ public class BridgeUserGroupProvider implements UserGroupProvider {
 
     public void setGroupManagerProvider(JahiaGroupManagerProvider groupManagerProvider) {
         this.groupManagerProvider = groupManagerProvider;
-    }
-
-    public boolean hasUserProvider() {
-        return this.userManagerProvider != null;
-    }
-
-    public boolean hasGroupProvider() {
-        return this.groupManagerProvider != null;
     }
 }

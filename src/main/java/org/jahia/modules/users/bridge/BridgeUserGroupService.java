@@ -183,7 +183,7 @@ public class BridgeUserGroupService implements BundleContextAware {
 
     private void registerBridge(JahiaGroupManagerProvider groupManagerProvider, JahiaUserManagerProvider userManagerProvider, String key){
         boolean alreadyRegistered = bridgeUserGroupProviderMap.containsKey(key);
-        BridgeUserGroupProvider bridgeProvider = alreadyRegistered ? bridgeUserGroupProviderMap.get(key) : new BridgeUserGroupProvider();
+        BridgeUserGroupProvider bridgeProvider = alreadyRegistered ? bridgeUserGroupProviderMap.get(key) : new BridgeUserGroupProvider(key);
         if(groupManagerProvider != null) {
             bridgeProvider.setGroupManagerProvider(groupManagerProvider);
         }
