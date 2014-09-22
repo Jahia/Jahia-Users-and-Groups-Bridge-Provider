@@ -74,12 +74,10 @@ package org.jahia.modules.users.bridge;
 import org.jahia.modules.external.users.Member;
 import org.jahia.modules.external.users.UserGroupProvider;
 import org.jahia.modules.external.users.UserNotFoundException;
-import org.jahia.services.usermanager.JahiaGroupManagerProvider;
-import org.jahia.services.usermanager.JahiaUser;
-import org.jahia.services.usermanager.JahiaUserManagerProvider;
+import org.jahia.services.usermanager.*;
 
-import java.util.List;
-import java.util.Properties;
+import java.security.Principal;
+import java.util.*;
 
 /**
  * A provider implementation for the bridge
@@ -92,17 +90,31 @@ public class BridgeUserGroupProvider implements UserGroupProvider {
 
     @Override
     public JahiaUser getUser(String name) throws UserNotFoundException {
-        return null;
+        return userManagerProvider.lookupUser(name);
     }
 
     @Override
     public boolean groupExists(String name) {
-        return false;
+        return groupManagerProvider.lookupGroup(name) != null;
     }
 
     @Override
     public List<Member> getGroupMembers(String groupName) {
-        return null;
+        JahiaGroup jahiaGroup = groupManagerProvider.lookupGroup(groupName);
+        // TODO see if use a guava transform is possible
+        List<Member> members = new ArrayList<Member>();
+        if(jahiaGroup != null){
+            Collection<Principal> principals = jahiaGroup.getMembers();
+            for (Principal principal : principals){
+                if(principal instanceof java.security.acl.Group) {
+                    members.add(new Member(principal.getName(), Member.MemberType.GROUP));
+                } else {
+                    members.add(new Member(principal.getName(), Member.MemberType.USER));
+                }
+            }
+            return members;
+        }
+        return Collections.emptyList();
     }
 
     @Override
@@ -112,17 +124,30 @@ public class BridgeUserGroupProvider implements UserGroupProvider {
 
     @Override
     public List<String> searchUsers(Properties searchCriterias) {
-        return null;
+        List<String> users = new ArrayList<String>();
+        // TODO see if use a guava transform is possible
+        Set<JahiaUser> jahiaUsers = userManagerProvider.searchUsers(searchCriterias);
+        for (JahiaUser jahiaUser : jahiaUsers) {
+            users.add(jahiaUser.getName());
+        }
+        return users;
     }
 
     @Override
     public List<String> searchGroups(Properties searchCriterias) {
-        return null;
+        List<String> groups = new ArrayList<String>();
+        // TODO see if use a guava transform is possible
+        Set<JahiaGroup> jahiaGroups = groupManagerProvider.searchGroups(0, searchCriterias);
+        for (JahiaGroup jahiaGroup : jahiaGroups) {
+            groups.add(jahiaGroup.getName());
+        }
+        return groups;
     }
 
     @Override
     public boolean verifyPassword(String userName, String userPassword) {
-        return false;
+        JahiaUser user = userManagerProvider.lookupUser(userName);
+        return user.verifyPassword(userPassword);
     }
 
     public String getProviderKey() {

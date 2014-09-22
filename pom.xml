@@ -137,7 +137,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Import-Package>org.jahia.modules.external.users,${jahia.plugin.projectPackageImport},*</Import-Package>
+            <Import-Package>${jahia.plugin.projectPackageImport},*</Import-Package>
             <Jahia-Depends>default,external-provider-users-groups</Jahia-Depends>
           </instructions>
         </configuration>

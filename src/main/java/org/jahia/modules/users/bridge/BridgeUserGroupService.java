@@ -72,6 +72,7 @@
 package org.jahia.modules.users.bridge;
 
 import org.eclipse.gemini.blueprint.context.BundleContextAware;
+import org.jahia.modules.external.users.ExternalUserGroupService;
 import org.jahia.services.usermanager.*;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.event.EventConstants;
@@ -88,13 +89,12 @@ import java.util.*;
 public class BridgeUserGroupService implements BundleContextAware {
     protected static final Logger logger = LoggerFactory.getLogger(BridgeUserGroupService.class);
 
-    Map<String, JahiaUserManagerProvider> userManagerProviders = new HashMap<String, JahiaUserManagerProvider>();
-    Map<String, JahiaGroupManagerProvider> groupManagerProviders = new HashMap<String, JahiaGroupManagerProvider>();
     Map<String, BridgeUserGroupProvider> bridgeUserGroupProviderMap = new HashMap<String, BridgeUserGroupProvider>();
     BundleContext context;
     JahiaUserManagerService jahiaUserManagerService;
     JahiaGroupManagerService jahiaGroupManagerService;
     ProvidersEventHandler providersEventHandler;
+    ExternalUserGroupService externalUserGroupService;
 
     @Override
     public void setBundleContext(BundleContext bundleContext) {
@@ -102,6 +102,15 @@ public class BridgeUserGroupService implements BundleContextAware {
     }
 
     public void init() {
+        // register already existing providers
+        for (JahiaUserManagerProvider jahiaUserManagerProvider : jahiaUserManagerService.getProviderList()){
+            registerUserProvider(jahiaUserManagerProvider);
+        }
+
+        for (JahiaGroupManagerProvider jahiaUserManagerProvider : jahiaGroupManagerService.getProviderList()){
+            registerGroupProvider(jahiaUserManagerProvider);
+        }
+
         // register event handlers
         if(context != null) {
             String[] topics = new String[] {
@@ -112,6 +121,13 @@ public class BridgeUserGroupService implements BundleContextAware {
             props.put(EventConstants.EVENT_TOPIC, topics);
             context.registerService(EventHandler.class.getName(), providersEventHandler, props);
         }
+    }
+
+    public void stop() {
+        for (String providerKey : bridgeUserGroupProviderMap.keySet()){
+            externalUserGroupService.unregister(providerKey);
+        }
+        bridgeUserGroupProviderMap.clear();
     }
 
     /**
@@ -133,33 +149,10 @@ public class BridgeUserGroupService implements BundleContextAware {
         return logger;
     }
 
-    public List<? extends JahiaUserManagerProvider> getUserProviderList(){
-        return new ArrayList<JahiaUserManagerProvider>(userManagerProviders.values());
-    }
-
-    public List<? extends JahiaGroupManagerProvider> getGroupProviderList(){
-        return new ArrayList<JahiaGroupManagerProvider>(groupManagerProviders.values());
-    }
-
-    public JahiaUserManagerProvider getUserProvider(String key){
-        return userManagerProviders.get(key);
-    }
-
-    public JahiaGroupManagerProvider getGroupProvider(String key){
-        return groupManagerProviders.get(key);
-    }
-
     public void registerUserProvider(String providerKey) {
         JahiaUserManagerProvider provider = jahiaUserManagerService.getProvider(providerKey);
         if(provider != null){
             registerUserProvider(provider);
-        }
-    }
-
-    public void unregisterUserProvider(String providerKey) {
-        JahiaUserManagerProvider provider = getUserProvider(providerKey);
-        if(provider != null){
-            unregisterUserProvider(provider);
         }
     }
 
@@ -170,31 +163,22 @@ public class BridgeUserGroupService implements BundleContextAware {
         }
     }
 
+    public void unregisterUserProvider(String providerKey) {
+        unregisterBridge(providerKey);
+    }
+
     public void unregisterGroupProvider(String providerKey) {
-        JahiaGroupManagerProvider provider = getGroupProvider(providerKey);
-        if(provider != null){
-            unregisterGroupProvider(provider);
+        if (bridgeUserGroupProviderMap.containsKey(providerKey)) {
+            bridgeUserGroupProviderMap.get(providerKey).setGroupManagerProvider(null);
         }
     }
 
     public void registerUserProvider(JahiaUserManagerProvider provider) {
-        userManagerProviders.put(provider.getKey(), provider);
         registerBridge(null, provider, provider.getKey());
     }
 
-    public void unregisterUserProvider(JahiaUserManagerProvider provider) {
-        userManagerProviders.remove(provider.getKey());
-        unregisterBridge(null, provider, provider.getKey());
-    }
-
     public void registerGroupProvider(JahiaGroupManagerProvider provider) {
-        groupManagerProviders.put(provider.getKey(), provider);
         registerBridge(provider, null, provider.getKey());
-    }
-
-    public void unregisterGroupProvider(JahiaGroupManagerProvider provider) {
-        groupManagerProviders.remove(provider.getKey());
-        unregisterBridge(provider, null, provider.getKey());
     }
 
     private void registerBridge(JahiaGroupManagerProvider groupManagerProvider, JahiaUserManagerProvider userManagerProvider, String key){
@@ -208,24 +192,14 @@ public class BridgeUserGroupService implements BundleContextAware {
         }
         if(!alreadyRegistered){
             bridgeUserGroupProviderMap.put(key, bridgeProvider);
-            // TODO Quentin register !
+            externalUserGroupService.register(key, bridgeProvider);
         }
     }
 
-    private void unregisterBridge(JahiaGroupManagerProvider groupManagerProvider, JahiaUserManagerProvider userManagerProvider, String key){
+    private void unregisterBridge(String key){
         if(bridgeUserGroupProviderMap.containsKey(key)){
-            BridgeUserGroupProvider bridgeProvider = bridgeUserGroupProviderMap.get(key);
-            if(groupManagerProvider != null){
-                bridgeProvider.setGroupManagerProvider(null);
-            }
-            if(userManagerProvider != null){
-                bridgeProvider.setUserManagerProvider(null);
-            }
-
-            if(!bridgeProvider.hasUserProvider()){
-                bridgeUserGroupProviderMap.remove(key);
-                // TODO Quentin unregister
-            }
+            bridgeUserGroupProviderMap.remove(key);
+            externalUserGroupService.unregister(key);
         }
     }
 
@@ -239,5 +213,9 @@ public class BridgeUserGroupService implements BundleContextAware {
 
     public void setProvidersEventHandler(ProvidersEventHandler providersEventHandler) {
         this.providersEventHandler = providersEventHandler;
+    }
+
+    public void setExternalUserGroupService(ExternalUserGroupService externalUserGroupService) {
+        this.externalUserGroupService = externalUserGroupService;
     }
 }
