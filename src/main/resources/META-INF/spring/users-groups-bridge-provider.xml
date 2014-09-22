@@ -6,5 +6,11 @@
     <bean class="org.jahia.modules.users.bridge.BridgeUserGroupProvider" />
 
     <bean id="bridgeUserGroupService" class="org.jahia.modules.users.bridge.BridgeUserGroupService"
-           factory-method="getInstance" init-method="init"/>
+           factory-method="getInstance" init-method="init">
+        <property name="jahiaUserManagerService" ref="JahiaUserManagerService"/>
+        <property name="jahiaGroupManagerService" ref="JahiaGroupManagerService"/>
+        <property name="providersEventHandler">
+            <bean class="org.jahia.modules.users.bridge.ProvidersEventHandler"/>
+        </property>
+    </bean>
 </beans>

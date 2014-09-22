@@ -82,6 +82,7 @@ import java.util.List;
 import java.util.Properties;
 
 /**
+ * A provider implementation for the bridge
  * @author kevan
  */
 public class BridgeUserGroupProvider implements UserGroupProvider {
@@ -117,6 +118,11 @@ public class BridgeUserGroupProvider implements UserGroupProvider {
     @Override
     public List<String> searchGroups(Properties searchCriterias) {
         return null;
+    }
+
+    @Override
+    public boolean verifyPassword(String userName, String userPassword) {
+        return false;
     }
 
     public String getProviderKey() {

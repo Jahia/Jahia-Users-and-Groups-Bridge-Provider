@@ -72,22 +72,29 @@
 package org.jahia.modules.users.bridge;
 
 import org.eclipse.gemini.blueprint.context.BundleContextAware;
-import org.jahia.services.usermanager.JahiaGroupManagerProvider;
-import org.jahia.services.usermanager.JahiaUserManagerProvider;
+import org.jahia.services.usermanager.*;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 /**
+ * Service for the bridge module, handle the creation/registration... for the old users and groups providers
  * @author kevan
  */
 public class BridgeUserGroupService implements BundleContextAware {
+    protected static final Logger logger = LoggerFactory.getLogger(BridgeUserGroupService.class);
+
     Map<String, JahiaUserManagerProvider> userManagerProviders = new HashMap<String, JahiaUserManagerProvider>();
     Map<String, JahiaGroupManagerProvider> groupManagerProviders = new HashMap<String, JahiaGroupManagerProvider>();
     Map<String, BridgeUserGroupProvider> bridgeUserGroupProviderMap = new HashMap<String, BridgeUserGroupProvider>();
     BundleContext context;
+    JahiaUserManagerService jahiaUserManagerService;
+    JahiaGroupManagerService jahiaGroupManagerService;
+    ProvidersEventHandler providersEventHandler;
 
     @Override
     public void setBundleContext(BundleContext bundleContext) {
@@ -98,12 +105,12 @@ public class BridgeUserGroupService implements BundleContextAware {
         // register event handlers
         if(context != null) {
             String[] topics = new String[] {
-                    "com/acme/reportgenerator/GENERATED"
+                    BridgeEvents.USERS_GROUPS_BRIDGE_EVENT_KEY + "*"
             };
 
             Dictionary props = new Hashtable();
             props.put(EventConstants.EVENT_TOPIC, topics);
-            context.registerService(EventHandler.class.getName(), new ProvidersEventHandler() , props);
+            context.registerService(EventHandler.class.getName(), providersEventHandler, props);
         }
     }
 
@@ -122,6 +129,10 @@ public class BridgeUserGroupService implements BundleContextAware {
     private BridgeUserGroupService() {
     }
 
+    public static Logger getLogger() {
+        return logger;
+    }
+
     public List<? extends JahiaUserManagerProvider> getUserProviderList(){
         return new ArrayList<JahiaUserManagerProvider>(userManagerProviders.values());
     }
@@ -136,6 +147,34 @@ public class BridgeUserGroupService implements BundleContextAware {
 
     public JahiaGroupManagerProvider getGroupProvider(String key){
         return groupManagerProviders.get(key);
+    }
+
+    public void registerUserProvider(String providerKey) {
+        JahiaUserManagerProvider provider = jahiaUserManagerService.getProvider(providerKey);
+        if(provider != null){
+            registerUserProvider(provider);
+        }
+    }
+
+    public void unregisterUserProvider(String providerKey) {
+        JahiaUserManagerProvider provider = getUserProvider(providerKey);
+        if(provider != null){
+            unregisterUserProvider(provider);
+        }
+    }
+
+    public void registerGroupProvider(String providerKey) {
+        JahiaGroupManagerProvider provider = jahiaGroupManagerService.getProvider(providerKey);
+        if(provider != null){
+            registerGroupProvider(provider);
+        }
+    }
+
+    public void unregisterGroupProvider(String providerKey) {
+        JahiaGroupManagerProvider provider = getGroupProvider(providerKey);
+        if(provider != null){
+            unregisterGroupProvider(provider);
+        }
     }
 
     public void registerUserProvider(JahiaUserManagerProvider provider) {
@@ -188,5 +227,17 @@ public class BridgeUserGroupService implements BundleContextAware {
                 // TODO Quentin unregister
             }
         }
+    }
+
+    public void setJahiaUserManagerService(JahiaUserManagerService jahiaUserManagerService) {
+        this.jahiaUserManagerService = jahiaUserManagerService;
+    }
+
+    public void setJahiaGroupManagerService(JahiaGroupManagerService jahiaGroupManagerService) {
+        this.jahiaGroupManagerService = jahiaGroupManagerService;
+    }
+
+    public void setProvidersEventHandler(ProvidersEventHandler providersEventHandler) {
+        this.providersEventHandler = providersEventHandler;
     }
 }

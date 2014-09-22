@@ -71,15 +71,37 @@
  */
 package org.jahia.modules.users.bridge;
 
+import org.apache.commons.lang.StringUtils;
+import org.jahia.modules.users.bridge.action.*;
+import org.jahia.services.usermanager.BridgeEvents;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
+ * Handle events related to old providers, events come from the jahia core.
  * @author kevan
  */
 public class ProvidersEventHandler implements EventHandler{
+    private static final Map<String, BridgeAction> eventTypeToBridgeActions = new HashMap<String, BridgeAction>(4);
+
+    static {
+        eventTypeToBridgeActions.put(BridgeEvents.USER_PROVIDER_REGISTER_BRIDGE_EVENT_KEY, new UserProviderRegisterAction());
+        eventTypeToBridgeActions.put(BridgeEvents.USER_PROVIDER_UNREGISTER_BRIDGE_EVENT_KEY, new UserProviderUnregisterAction());
+        eventTypeToBridgeActions.put(BridgeEvents.GROUP_PROVIDER_REGISTER_BRIDGE_EVENT_KEY, new GroupProviderRegisterAction());
+        eventTypeToBridgeActions.put(BridgeEvents.GROUP_PROVIDER_UNREGISTER_BRIDGE_EVENT_KEY, new GroupProviderUnregisterAction());
+    }
+
     @Override
     public void handleEvent(Event event) {
-        System.out.println("EVENT .........." + event.toString());
+        BridgeAction bridgeAction = eventTypeToBridgeActions.get(event.getTopic());
+        if(bridgeAction != null) {
+            String provider = (String) event.getProperty(BridgeEvents.PROVIDER_KEY);
+            if(StringUtils.isNotEmpty(provider)){
+                bridgeAction.doAction(provider);
+            }
+        }
     }
 }
