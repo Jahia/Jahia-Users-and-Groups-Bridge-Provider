@@ -70,23 +70,28 @@
         please contact the sales department at sales@jahia.com.
 
 -->
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.jahia.modules</groupId>
-    <artifactId>jahia-modules</artifactId>
-    <version>7.1.0.0-SNAPSHOT</version>
-  </parent>
-  <artifactId>users-groups-bridge-provider</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
-  <packaging>bundle</packaging>
-  <name>Jahia Users and Groups Bridge Provider</name>
-  <description>This is the custom module (Jahia Users and Groups Bridge Provider) for running on a Digital Factory server.</description>
-  <scm>
-    <connection>scm:dummy:uri</connection>
-    <developerConnection>scm:dummy:uri</developerConnection>
-  </scm>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jahia.modules</groupId>
+        <artifactId>jahia-modules</artifactId>
+        <version>7.1.0.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>users-groups-bridge-provider</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>bundle</packaging>
+    <name>Jahia Users and Groups Bridge Provider</name>
+    <description>This is the custom module (Jahia Users and Groups Bridge Provider) for running on a Digital Factory
+        server.
+    </description>
+    <scm>
+        <connection>scm:git:git@github.com:Jahia/Jahia-Users-and-Groups-Bridge-Provider.git</connection>
+        <developerConnection>scm:git:git@github.com:Jahia/Jahia-Users-and-Groups-Bridge-Provider.git
+        </developerConnection>
+        <url>https://github.com/Jahia/Jahia-Users-and-Groups-Bridge-Provider</url>
+    </scm>
     <dependencies>
         <dependency>
             <groupId>org.jahia.modules</groupId>
@@ -115,33 +120,33 @@
             </exclusions>
         </dependency>
     </dependencies>
-  <repositories>
-    <repository>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <id>jahia-public</id>
-      <name>Jahia Public Repository</name>
-      <url>https://devtools.jahia.com/nexus/content/groups/public</url>
-    </repository>
-  </repositories>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Import-Package>${jahia.plugin.projectPackageImport},*</Import-Package>
-            <Jahia-Depends>default,external-provider-users-groups</Jahia-Depends>
-          </instructions>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+    <repositories>
+        <repository>
+            <id>jahia-public</id>
+            <name>Jahia Public Repository</name>
+            <url>https://devtools.jahia.com/nexus/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Import-Package>${jahia.plugin.projectPackageImport},*</Import-Package>
+                        <Jahia-Depends>default,external-provider-users-groups</Jahia-Depends>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
