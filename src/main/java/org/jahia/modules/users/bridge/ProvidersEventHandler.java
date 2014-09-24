@@ -72,13 +72,14 @@
 package org.jahia.modules.users.bridge;
 
 import org.apache.commons.lang.StringUtils;
-import org.jahia.modules.users.bridge.action.*;
 import org.jahia.services.usermanager.BridgeEvents;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
+import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
+
 
 /**
  * Handle events related to old providers, events come from the jahia core.
@@ -102,6 +103,50 @@ public class ProvidersEventHandler implements EventHandler{
             if(StringUtils.isNotEmpty(provider)){
                 bridgeAction.doAction(provider);
             }
+        }
+    }
+
+    public abstract static class BridgeAction {
+        Logger getLogger(){
+            return BridgeUserGroupService.getLogger();
+        }
+
+        BridgeUserGroupService getInstance(){
+            return BridgeUserGroupService.getInstance();
+        }
+
+        abstract void doAction(String providerKey);
+    }
+
+    public static class GroupProviderRegisterAction extends BridgeAction {
+        @Override
+        public void doAction(String providerKey) {
+            getLogger().debug("register old group provider: " + providerKey);
+            getInstance().registerGroupProvider(providerKey);
+        }
+    }
+
+    public static class GroupProviderUnregisterAction extends BridgeAction {
+        @Override
+        public void doAction(String providerKey) {
+            getLogger().debug("Unregister old group provider: " + providerKey);
+            getInstance().unregisterGroupProvider(providerKey);
+        }
+    }
+
+    public static class UserProviderRegisterAction extends BridgeAction {
+        @Override
+        public void doAction(String providerKey) {
+            getLogger().debug("Register old user provider: " + providerKey);
+            getInstance().registerUserProvider(providerKey);
+        }
+    }
+
+    public static class UserProviderUnregisterAction extends BridgeAction {
+        @Override
+        public void doAction(String providerKey) {
+            getLogger().debug("Unregister old user provider: " + providerKey);
+            getInstance().unregisterUserProvider(providerKey);
         }
     }
 }
