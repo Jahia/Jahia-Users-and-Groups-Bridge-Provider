@@ -71,11 +71,16 @@
  */
 package org.jahia.modules.users.bridge;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Collections2;
+import org.jahia.modules.external.users.GroupNotFoundException;
 import org.jahia.modules.external.users.Member;
 import org.jahia.modules.external.users.UserGroupProvider;
 import org.jahia.modules.external.users.UserNotFoundException;
 import org.jahia.services.usermanager.*;
 
+import javax.annotation.Nullable;
 import java.security.Principal;
 import java.util.*;
 
@@ -94,12 +99,28 @@ public class BridgeUserGroupProvider implements UserGroupProvider {
 
     @Override
     public JahiaUser getUser(String name) throws UserNotFoundException {
-        return isUserManagerAvailable() ? userManagerProvider.lookupUser(name) : null;
+        if(isUserManagerAvailable()){
+            JahiaUser user = userManagerProvider.lookupUser(name);
+            if(user != null) {
+                return user;
+            } else {
+                throw new UserNotFoundException("unable to find user " + name + " on provider " + providerKey);
+            }
+        }
+        return null;
     }
 
     @Override
-    public boolean groupExists(String name) {
-        return isGroupManagerAvailable() && groupManagerProvider.groupExists(0, name);
+    public JahiaGroup getGroup(String name) throws GroupNotFoundException {
+        if(isGroupManagerAvailable()){
+            JahiaGroup group = groupManagerProvider.lookupGroup(0, name);
+            if(group != null) {
+                return group;
+            } else {
+                throw new GroupNotFoundException("unable to find group " + name + " on provider " + providerKey);
+            }
+        }
+        return null;
     }
 
     @Override
@@ -127,7 +148,20 @@ public class BridgeUserGroupProvider implements UserGroupProvider {
         if(isUserManagerAvailable() && member.getType().equals(Member.MemberType.USER)){
             JahiaUser user = userManagerProvider.lookupUser(member.getName());
             if(user != null && isGroupManagerAvailable()){
-                return groupManagerProvider.getUserMembership(user);
+                List<String> keys = groupManagerProvider.getUserMembership(user);
+                return new ArrayList<String>(Collections2.filter(Collections2.transform(keys, new Function<String, String>() {
+                    @Nullable
+                    @Override
+                    public String apply(@Nullable String input) {
+                        if (input != null) {
+                            JahiaGroup group = groupManagerProvider.lookupGroup(input);
+                            if(group != null){
+                                return group.getName();
+                            }
+                        }
+                        return null;
+                    }
+                }), Predicates.notNull()));
             }
         }
         return Collections.emptyList();
