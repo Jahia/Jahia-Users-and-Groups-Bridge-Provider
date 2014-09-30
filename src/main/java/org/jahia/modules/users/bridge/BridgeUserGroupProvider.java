@@ -123,9 +123,9 @@ public class BridgeUserGroupProvider implements UserGroupProvider {
     }
 
     @Override
-    public List<String> getMembership(String userName) {
-        if(isUserManagerAvailable()){
-            JahiaUser user = userManagerProvider.lookupUser(userName);
+    public List<String> getMembership(Member member) {
+        if(isUserManagerAvailable() && member.getType().equals(Member.MemberType.USER)){
+            JahiaUser user = userManagerProvider.lookupUser(member.getName());
             if(user != null && isGroupManagerAvailable()){
                 return groupManagerProvider.getUserMembership(user);
             }
