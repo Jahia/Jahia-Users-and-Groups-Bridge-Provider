@@ -168,7 +168,7 @@ public class BridgeUserGroupProvider implements UserGroupProvider {
     }
 
     @Override
-    public List<String> searchUsers(Properties searchCriterias) {
+    public List<String> searchUsers(Properties searchCriterias, long offset, long limit) {
         List<String> users = new ArrayList<String>();
         if(isUserManagerAvailable()){
             Set<JahiaUser> jahiaUsers = userManagerProvider.searchUsers(searchCriterias);
@@ -176,11 +176,11 @@ public class BridgeUserGroupProvider implements UserGroupProvider {
                 users.add(jahiaUser.getName());
             }
         }
-        return users;
+        return users.subList(Math.min((int) offset, users.size()), limit < 0 ? users.size() : Math.min((int) (offset + limit), users.size()));
     }
 
     @Override
-    public List<String> searchGroups(Properties searchCriterias) {
+    public List<String> searchGroups(Properties searchCriterias, long offset, long limit) {
         List<String> groups = new ArrayList<String>();
         if(isGroupManagerAvailable()){
             Set<JahiaGroup> jahiaGroups = groupManagerProvider.searchGroups(0, searchCriterias);
@@ -188,7 +188,7 @@ public class BridgeUserGroupProvider implements UserGroupProvider {
                 groups.add(jahiaGroup.getGroupname());
             }
         }
-        return groups;
+        return groups.subList(Math.min((int) offset, groups.size()), limit < 0 ? groups.size() : Math.min((int) (offset + limit), groups.size()));
     }
 
     @Override
@@ -200,6 +200,11 @@ public class BridgeUserGroupProvider implements UserGroupProvider {
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean supportsGroups() {
+        return isGroupManagerAvailable();
     }
 
     private boolean isGroupManagerAvailable(){
