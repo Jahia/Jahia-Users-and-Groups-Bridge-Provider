@@ -204,7 +204,7 @@ public class BridgeUserGroupProvider implements UserGroupProvider {
 
     @Override
     public boolean supportsGroups() {
-        return isGroupManagerAvailable();
+        return true;
     }
 
     private boolean isGroupManagerAvailable(){
