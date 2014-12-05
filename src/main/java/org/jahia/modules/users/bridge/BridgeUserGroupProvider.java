@@ -81,6 +81,7 @@ import org.jahia.modules.external.users.UserNotFoundException;
 import org.jahia.services.usermanager.*;
 
 import javax.annotation.Nullable;
+import javax.jcr.RepositoryException;
 import java.security.Principal;
 import java.util.*;
 
@@ -204,6 +205,11 @@ public class BridgeUserGroupProvider implements UserGroupProvider {
 
     @Override
     public boolean supportsGroups() {
+        return true;
+    }
+
+    @Override
+    public boolean isAvailable() throws RepositoryException {
         return true;
     }
 
