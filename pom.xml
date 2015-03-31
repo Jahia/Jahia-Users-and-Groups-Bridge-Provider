@@ -88,9 +88,8 @@
     </description>
     <scm>
         <connection>scm:git:git@github.com:Jahia/Jahia-Users-and-Groups-Bridge-Provider.git</connection>
-        <developerConnection>scm:git:git@github.com:Jahia/Jahia-Users-and-Groups-Bridge-Provider.git
-        </developerConnection>
-        <url>https://github.com/Jahia/Jahia-Users-and-Groups-Bridge-Provider</url>
+        <developerConnection>scm:git:git@github.com:Jahia/Jahia-Users-and-Groups-Bridge-Provider.git</developerConnection>
+        <url>scm:git:git@github.com:Jahia/Jahia-Users-and-Groups-Bridge-Provider</url>
     </scm>
 
     <properties>
