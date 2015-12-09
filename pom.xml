@@ -81,7 +81,7 @@
     <version>1.0.1-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>Jahia Users and Groups Bridge Provider</name>
-    <description>This is the custom module (Jahia Users and Groups Bridge Provider) for running on a Digital Factory
+    <description>This is the custom module (Jahia Users and Groups Bridge Provider) for running on a Digital Experience Manager
         server.
     </description>
     <scm>
