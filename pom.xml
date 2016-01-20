@@ -52,7 +52,7 @@
         <version>7.1.0.0</version>
     </parent>
     <artifactId>users-groups-bridge-provider</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>Jahia Users and Groups Bridge Provider</name>
     <description>This is the custom module (Jahia Users and Groups Bridge Provider) for running on a Digital Experience Manager
@@ -62,7 +62,7 @@
         <connection>scm:git:git@github.com:Jahia/Jahia-Users-and-Groups-Bridge-Provider.git</connection>
         <developerConnection>scm:git:git@github.com:Jahia/Jahia-Users-and-Groups-Bridge-Provider.git</developerConnection>
         <url>scm:git:git@github.com:Jahia/Jahia-Users-and-Groups-Bridge-Provider</url>
-      <tag>1_0_1</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <properties>
